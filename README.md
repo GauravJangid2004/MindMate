@@ -1,6 +1,6 @@
 # MindMate — Intergenerational Mental Wellbeing Support Platform
 
-> **Final Year Major Project (Semester 7)**  
+> **Final Year Major Project**  
 > *Bridging Generational Wisdom with Youth Mental Health via Anonymous, Privacy-Preserving Mentorship.*
 
 ---
@@ -369,3 +369,111 @@ Base URL: `http://localhost:5000/api` (All routes except `/auth/*` require `Auth
 - **Project:** MindMate — Major Project (Semester 7)
 - **Domain:** Mental Healthcare Technology & Applied Cryptography
 - **Inspiration:** Bridging the intergenerational gap to build an empathetic society.
+
+---
+
+## User Research & Survey Validation
+
+MindMate's initial product direction was informed by a user survey and review exercise documented in the project research material. The survey section of the reference document reports **60 responses** and explores students' emotional stress, access to trusted support, willingness to seek guidance from experienced mentors, preferred platform features, usage frequency, and willingness-to-pay considerations.
+
+**Source:** MindMate Survey/Review reference document, pages 15–17.
+
+### 1. Survey Findings
+
+The survey indicates the following patterns among respondents:
+
+- **Frequency of emotional stress:** 37.5% reported experiencing stress, anxiety, or emotional overwhelm daily; 25% weekly; 25% occasionally; and 12.5% rarely.
+- **Availability of understanding support:** 41.7% said they have someone who truly understands their problems, 33.3% selected sometimes, and 25% said no.
+- **Fear of judgment:** 48.3% reported avoiding sharing problems because of fear of judgment, while 33.3% selected maybe and 18.3% selected no.
+- **Current sources of support:** Friends were the most frequently selected source at 51.7%, followed by family at 26.7%. Respondents also mentioned counselors, no one, and AI chatbots as other sources.
+- **Preference for guidance:** The survey explored preference between peers and experienced mentors, including an option for both, indicating interest in guidance that combines relatable interaction with real-life experience.
+- **Value of real-life experience:** 41.7% considered speaking with someone with real-life experience very helpful, 51.7% somewhat helpful, and 6.7% not helpful.
+- **Preferred platform features:** Anonymous support (36.7%) and 1-to-1 mentorship (30%) were among the most selected features, followed by mood tracking (21.7%) and regular check-ins (11.7%).
+- **Potential usage frequency:** 58.3% indicated weekly use, 16.7% daily use, and 25% occasional use.
+
+These findings provide preliminary user-validation signals for MindMate's focus on safe human interaction, anonymity, experienced mentorship, and lightweight wellbeing-support features. The survey is treated as **early-stage user research**, not as a clinical or population-level mental-health study.
+
+### 2. Qualitative User Feedback
+
+The open-ended responses in the survey highlighted several recurring expectations:
+
+- A **safe space** where users can discuss uncertain or personal situations.
+- A mentor who **listens as well as guides**, rather than providing only generic advice.
+- **Anonymous communication** for situations where users may not want their identity disclosed.
+- Guidance that provides a **better perspective** and practical, actionable solutions.
+- Interest in **personalized experiences** that users can connect with immediately.
+- Interest in **regular mental-health tracking and periodic analysis**.
+- Some respondents expressed willingness to pay only after experiencing the value of the service; one response explicitly mentioned a willingness to pay **₹150/month**. These responses are qualitative signals and should not be interpreted as a statistically representative pricing study.
+
+**Source:** MindMate Survey/Review reference document, page 17.
+
+### 3. Research-Driven Product Implications
+
+Based on the survey, the current MindMate prototype prioritizes:
+
+1. **Human-first mentorship** rather than relying exclusively on automated support.
+2. **Anonymity and privacy** as important trust mechanisms.
+3. **1-to-1 mentorship** with experienced individuals.
+4. **Wellbeing tools** such as mood tracking and breathing exercises.
+5. **Consistent interaction** through conversations and ongoing support.
+6. **Personalized guidance** rather than generic content.
+7. **Feedback and usage data** as future inputs for improving mentor matching and user experience.
+
+The survey also supports further investigation into mentor quality, safety, trust, matching accuracy, willingness to pay, and long-term engagement before making broader product or business claims.
+
+---
+
+## Preliminary Market & Competitor Research
+
+The project research material also contains an initial comparison of MindMate with existing alternatives, including **7 Cups, MentorCruise, and Togetherall**. The comparison identifies differences in primary focus, target users, interaction model, mentor type, authentication, anonymity, emotional support, cost, and moderation.
+
+**Source:** MindMate Survey/Review reference document, pages 7 and 11.
+
+### 1. Existing Alternatives Identified in the Research
+
+- **7 Cups:** The research material describes anonymous chat with volunteer listeners and an emotional-support focus.
+- **MentorCruise:** The research material describes a professional mentorship marketplace with structured 1-to-1 sessions and a career-oriented focus.
+- **Togetherall:** The research material describes a clinically moderated wellness community used by universities and workplaces, with a community-oriented interaction model.
+
+These observations are part of the project's preliminary competitor research and should be re-verified against the current versions of these services before being used as formal competitive or patent prior-art conclusions.
+
+### 2. MindMate's Intended Product Position
+
+The project's current positioning combines:
+
+- Intergenerational 1-to-1 mentorship.
+- Verified and experienced mentors.
+- A safe and anonymous interaction environment.
+- Emotional wellbeing support alongside human guidance.
+- Mood tracking, journaling, breathing exercises, and community features.
+- A focus on students and young users who may seek both emotional support and practical life perspective.
+
+The research material identifies **mentor verification, anonymity, structured human mentorship, and the combination of emotional support with experienced human guidance** as important differentiation themes. These are product-positioning observations and should not be treated as proof of patent novelty without a dedicated prior-art search.
+
+---
+
+## Research Gaps & Areas for Further Validation
+
+The current survey provides useful early evidence but also identifies areas requiring additional research before the system and any patent claims are finalized:
+
+- **Mentor matching:** Determine which user inputs produce the most relevant mentor recommendations.
+- **Trust and verification:** Study how identity, age, and professional-experience verification affect willingness to interact.
+- **Mentor quality:** Define measurable criteria for relevance, responsiveness, communication quality, and user feedback.
+- **Safety:** Validate moderation workflows for sensitive conversations and escalation scenarios.
+- **Privacy:** Study the balance between anonymity and sufficient verification to maintain platform safety.
+- **Engagement:** Measure whether weekly or daily interaction patterns continue after the initial novelty of the platform.
+- **Pricing:** Conduct a larger pricing study before finalizing subscription or premium features.
+- **Algorithm research:** Compare different matching approaches and document measurable improvements rather than assuming that an AI-based approach is automatically better.
+- **Patent research:** Conduct a dedicated prior-art search before claiming novelty for any matching, verification, recommendation, or relationship-allocation mechanism.
+
+---
+
+## Research Status
+
+The current evidence base consists of:
+
+- A **60-response initial user survey/review** documented in the project research material.
+- A preliminary **problem, customer, alternative, competitor, SWOT, and market analysis**.
+- A working **UI/UX prototype and software architecture** documented in this README.
+- Identified research gaps that will require further experimentation and validation.
+
