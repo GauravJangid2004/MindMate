@@ -8,7 +8,8 @@
  *  - Response parsing
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+export const SOCKET_URL = API_BASE.replace(/\/api\/?$/, '');
 
 // ─── Token helpers ──────────────────────────────────────
 
@@ -26,10 +27,11 @@ export function clearToken() {
 
 // ─── Core fetch wrapper ─────────────────────────────────
 
-interface ApiResponse<T = any> {
+export interface ApiResponse<T = any> {
   success: boolean;
   message?: string;
   data?: T;
+  sandbox?: { otp?: string };
   errors?: Array<{ field: string; message: string }>;
 }
 
@@ -53,7 +55,10 @@ async function request<T = any>(
     headers,
   });
 
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json')
+    ? await response.json()
+    : { message: await response.text() };
 
   if (!response.ok) {
     // If token is invalid/expired, clear it
@@ -73,6 +78,12 @@ async function request<T = any>(
 // ─── AUTH ────────────────────────────────────────────────
 
 export const auth = {
+  checkPhone: (phone: string) =>
+    request('/auth/check-phone', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    }),
+
   sendOTP: (phone: string) =>
     request('/auth/send-otp', {
       method: 'POST',
@@ -97,10 +108,18 @@ export const auth = {
       body: JSON.stringify(data),
     }),
 
-  login: (phone: string, zkCommitment: string) =>
+  login: (
+    phone: string,
+    zkCommitment?: string,
+    userType?: 'student' | 'elder'
+  ) =>
     request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ phone, zkCommitment }),
+      body: JSON.stringify({
+        phone,
+        ...(zkCommitment ? { zkCommitment } : {}),
+        ...(userType ? { userType } : {}),
+      }),
     }),
 
   getMe: () => request('/auth/me'),
@@ -183,10 +202,10 @@ export const chat = {
 export const diary = {
   getEntries: () => request('/diary'),
 
-  createEntry: (content: string, mood: string) =>
+  createEntry: (content: string, mood: string, shareWithMentor = true) =>
     request('/diary', {
       method: 'POST',
-      body: JSON.stringify({ content, mood }),
+      body: JSON.stringify({ content, mood, shareWithMentor }),
     }),
 
   deleteEntry: (id: string) =>
@@ -235,5 +254,21 @@ export const community = {
     request('/community/encouragement', {
       method: 'POST',
       body: JSON.stringify({ message }),
+    }),
+};
+
+// ─── EMERGENCY CONTACTS ─────────────────────────────────
+export const emergencyContacts = {
+  getAll: () => request('/emergency-contacts'),
+
+  create: (name: string, relationship: string, phone: string) =>
+    request('/emergency-contacts', {
+      method: 'POST',
+      body: JSON.stringify({ name, relationship, phone }),
+    }),
+
+  remove: (id: string) =>
+    request(`/emergency-contacts/${id}`, {
+      method: 'DELETE',
     }),
 };

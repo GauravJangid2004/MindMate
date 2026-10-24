@@ -7,6 +7,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
+const xss = require('xss-clean');
 
 const connectDB = require('./config/db');
 const logger = require('./utils/logger');
@@ -22,6 +23,7 @@ const chatRoutes = require('./routes/chat');
 const diaryRoutes = require('./routes/diary');
 const moodRoutes = require('./routes/mood');
 const communityRoutes = require('./routes/community');
+const emergencyRoutes = require('./routes/emergency');
 
 // ─── App Setup ──────────────────────────────────────────
 const app = express();
@@ -58,6 +60,9 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 // Sanitize data against NoSQL injection
 app.use(mongoSanitize());
 
+// Strip HTML/script payloads from request bodies and query strings
+app.use(xss());
+
 // Prevent HTTP parameter pollution
 app.use(hpp());
 
@@ -69,6 +74,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/diary', diaryRoutes);
 app.use('/api/mood', moodRoutes);
 app.use('/api/community', communityRoutes);
+app.use('/api/emergency-contacts', emergencyRoutes);
 
 // ─── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -97,8 +103,23 @@ initializeChatSocket(io);
 // ─── Start Server ───────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
+const validateEnvironment = () => {
+  const required = ['MONGODB_URI', 'JWT_SECRET', 'ENCRYPTION_KEY'];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+  if (process.env.JWT_SECRET.length < 32) {
+    throw new Error('JWT_SECRET must be at least 32 characters long');
+  }
+  if (!/^[0-9a-fA-F]{64}$/.test(process.env.ENCRYPTION_KEY)) {
+    throw new Error('ENCRYPTION_KEY must be a 32-byte hexadecimal value');
+  }
+};
+
 const startServer = async () => {
   try {
+    validateEnvironment();
     await connectDB();
 
     server.listen(PORT, () => {

@@ -41,12 +41,19 @@ const getEntries = async (req, res, next) => {
  */
 const createEntry = async (req, res, next) => {
   try {
-    const { content, mood } = req.body;
+    const { content, mood, shareWithMentor = true } = req.body;
 
     if (!content || !content.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Diary content is required',
+      });
+    }
+
+    if (mood && !['happy', 'sad', 'neutral', 'grateful'].includes(mood)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid diary mood',
       });
     }
 
@@ -58,6 +65,7 @@ const createEntry = async (req, res, next) => {
       content: encryptedContent,
       mood: mood || 'neutral',
       isEncrypted: true,
+      sharedWithMentor: Boolean(shareWithMentor),
     });
 
     // Return with decrypted content for immediate display
@@ -136,7 +144,10 @@ const getStudentDiary = async (req, res, next) => {
       });
     }
 
-    const entries = await DiaryEntry.find({ userId: studentId })
+    const entries = await DiaryEntry.find({
+      userId: studentId,
+      sharedWithMentor: true,
+    })
       .sort({ createdAt: -1 })
       .limit(50);
 

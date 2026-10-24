@@ -17,7 +17,6 @@ import {
   Sparkles,
   AlertCircle,
   Copy,
-  Heart,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -29,6 +28,7 @@ import {
   maskAadhaar,
 } from "../lib/aadhaarZK";
 import { auth as authApi } from "../lib/api";
+import mindmateMark from "../../assets/mindmate-mark.png";
 
 type Step = "phone" | "otp" | "aadhaar" | "zk-computing" | "success";
 
@@ -188,10 +188,16 @@ export function VerifyIdentity() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { verifyUser } = useAuth();
-  const nextRoute = searchParams.get("next") ?? "/signup/student";
+  const requestedAccountType = searchParams.get("accountType");
+  const defaultSignupRoute = requestedAccountType === "mentor" || requestedAccountType === "elder"
+    ? "/signup/mentor"
+    : "/signup/student";
+  const nextRoute = searchParams.get("next") ?? defaultSignupRoute;
+  const isSignupFlow = searchParams.get("mode") === "signup" || nextRoute.startsWith("/signup/");
+  const initialPhone = (searchParams.get("phone") || "").replace(/\D/g, "").slice(0, 10);
 
   const [step, setStep] = useState<Step>("phone");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(initialPhone);
   const [sandboxOTP, setSandboxOTP] = useState("");
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState(false);
@@ -202,6 +208,7 @@ export function VerifyIdentity() {
   const [zkHash, setZkHash] = useState("");
   const [handle, setHandle] = useState("");
   const [copied, setCopied] = useState(false);
+  const [registeredUserType, setRegisteredUserType] = useState<"student" | "elder" | null>(null);
 
   // Resend countdown timer
   useEffect(() => {
@@ -219,8 +226,8 @@ export function VerifyIdentity() {
     try {
       const response = await authApi.sendOTP(digits);
       // In sandbox mode, the backend returns the OTP in the response
-      if (response.data?.sandbox?.otp) {
-        setSandboxOTP(response.data.sandbox.otp);
+      if (response.sandbox?.otp) {
+        setSandboxOTP(response.sandbox.otp);
       }
       setOtp("");
       setOtpError(false);
@@ -235,8 +242,14 @@ export function VerifyIdentity() {
   const handleVerifyOTP = async () => {
     const digits = phone.replace(/\D/g, "");
     try {
-      await authApi.verifyOTP(digits, otp);
+      const response = await authApi.verifyOTP(digits, otp);
       setOtpError(false);
+
+      if (isSignupFlow && response.data?.isRegistered) {
+        setRegisteredUserType(response.data.userType || null);
+        return;
+      }
+
       setStep("aadhaar");
     } catch (err: any) {
       setOtpError(true);
@@ -254,7 +267,7 @@ export function VerifyIdentity() {
     setStep("zk-computing");
 
     try {
-      // Simulate ZK computation delay
+      // Give the client-side commitment step time to render its progress state.
       await new Promise((r) => setTimeout(r, 800));
       const commitment = await computeZKCommitment(cleaned, phone.replace(/\D/g, ""));
       const anonymousHandle = deriveHandle(commitment);
@@ -289,9 +302,7 @@ export function VerifyIdentity() {
         {/* Logo */}
         <div className="text-center mb-6">
           <Link to="/login" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C4B5FD] to-[#A78BFA] flex items-center justify-center shadow-md">
-              <Heart className="w-5 h-5 text-white" />
-            </div>
+            <img src={mindmateMark} alt="MindMate" className="w-12 h-12 object-contain" />
             <span className="font-semibold text-foreground">MindMate</span>
           </Link>
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground mt-3">
@@ -393,7 +404,7 @@ export function VerifyIdentity() {
                 </div>
 
                 {/* Sandbox OTP reveal */}
-                <motion.div
+                {sandboxOTP && <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-6 p-4 bg-[#F0FDF4] border border-[#86EFAC] rounded-2xl"
@@ -405,11 +416,25 @@ export function VerifyIdentity() {
                     {sandboxOTP}
                   </p>
                   <p className="text-xs text-[#166534] mt-1">
-                    In production this would arrive via SMS
+                    Development mode: the local API generated this code for testing.
                   </p>
-                </motion.div>
+                </motion.div>}
 
-                <div className="space-y-5">
+                {registeredUserType ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-[#FFF7ED] border border-orange-200 rounded-2xl">
+                      <p className="text-sm font-semibold text-orange-800">This phone number is already registered.</p>
+                      <p className="text-xs text-orange-700 mt-1">Sign in with phone OTP to access your existing {registeredUserType === "elder" ? "mentor" : "student"} account. No new identity verification is needed.</p>
+                    </div>
+                    <Button
+                      onClick={() => navigate(`/login?accountType=${registeredUserType === "elder" ? "mentor" : "student"}&phone=${encodeURIComponent(phone)}`)}
+                      className="w-full bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA] hover:from-[#A78BFA] hover:to-[#8B5CF6] text-white rounded-full py-5"
+                    >
+                      Go to Sign In
+                    </Button>
+                    <button onClick={() => { setRegisteredUserType(null); setStep("phone"); }} className="w-full text-sm text-muted-foreground hover:text-foreground">Use a different phone number</button>
+                  </div>
+                ) : <div className="space-y-5">
                   <div>
                     <label className="block text-sm font-medium mb-3 text-center">
                       Enter 6-digit code
@@ -456,7 +481,7 @@ export function VerifyIdentity() {
                       </button>
                     )}
                   </div>
-                </div>
+                </div>}
               </Card>
             </motion.div>
           )}

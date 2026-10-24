@@ -20,6 +20,7 @@ import { ConnectionRequests } from "./pages/ConnectionRequests";
 import { QRConnection } from "./pages/QRConnection";
 import { Diary } from "./pages/Diary";
 import { StudentDiary } from "./pages/StudentDiary";
+import { EmergencyContacts } from "./pages/EmergencyContacts";
 
 export const router = createBrowserRouter([
   {
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
     Component: SignupElder,
   },
   {
+    path: "/signup/mentor",
+    Component: SignupElder,
+  },
+  {
     path: "/select-mentor",
     Component: SelectMentor,
   },
@@ -49,6 +54,10 @@ export const router = createBrowserRouter([
   {
     path: "/qr-connection",
     Component: QRConnection,
+  },
+  {
+    path: "/emergency-contacts",
+    Component: EmergencyContacts,
   },
   {
     path: "/",

@@ -6,6 +6,8 @@ const Conversation = require('../models/Conversation');
 const ConnectionRequest = require('../models/ConnectionRequest');
 const CommunityPost = require('../models/CommunityPost');
 const EncouragementNote = require('../models/EncouragementNote');
+const EmergencyContact = require('../models/EmergencyContact');
+const QRConnectionToken = require('../models/QRConnectionToken');
 const logger = require('../utils/logger');
 
 /**
@@ -84,20 +86,26 @@ const updateProfile = async (req, res, next) => {
 const deleteAccount = async (req, res, next) => {
   try {
     const userId = req.user._id;
+    const userConversations = await Conversation.find({ participants: userId }).select('_id');
+    const conversationIds = userConversations.map((conversation) => conversation._id);
 
     // Delete all user data in parallel
     await Promise.all([
       DiaryEntry.deleteMany({ userId }),
       MoodEntry.deleteMany({ userId }),
-      Message.deleteMany({ senderId: userId }),
+      Message.deleteMany({
+        $or: [{ senderId: userId }, { conversationId: { $in: conversationIds } }],
+      }),
       CommunityPost.deleteMany({ authorId: userId }),
       EncouragementNote.deleteMany({ authorId: userId }),
+      EmergencyContact.deleteMany({ userId }),
+      QRConnectionToken.deleteMany({ ownerId: userId }),
       ConnectionRequest.deleteMany({
         $or: [{ studentId: userId }, { mentorId: userId }],
       }),
     ]);
 
-    // Remove user from conversations
+    // Remove conversations owned by the user after their messages are removed
     await Conversation.deleteMany({ participants: userId });
 
     // If user is a student, clear mentor reference

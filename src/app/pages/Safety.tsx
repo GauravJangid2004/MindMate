@@ -1,31 +1,32 @@
 import { motion } from "motion/react";
+import { Link } from "react-router";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Phone, Shield, Lock, AlertCircle, Heart, ExternalLink } from "lucide-react";
 
 const crisisResources = [
   {
-    name: "National Suicide Prevention Lifeline",
-    phone: "988",
-    description: "24/7 free and confidential support",
+    name: "Emergency Services",
+    phone: "112",
+    description: "Immediate emergency assistance in India",
     available: "24/7",
   },
   {
-    name: "Crisis Text Line",
-    phone: "Text HOME to 741741",
-    description: "Free 24/7 crisis support via text",
+    name: "Tele-MANAS",
+    phone: "14416",
+    description: "National mental-health support helpline",
     available: "24/7",
   },
   {
-    name: "Student Counseling Services",
-    phone: "Campus Extension: 3456",
-    description: "Professional counseling for students",
+    name: "KIRAN Mental Health Helpline",
+    phone: "1800-599-0019",
+    description: "Government mental-health support",
     available: "Mon-Fri, 9AM-5PM",
   },
   {
-    name: "SAMHSA National Helpline",
-    phone: "1-800-662-4357",
-    description: "Mental health and substance abuse support",
+    name: "Vandrevala Foundation",
+    phone: "9999 666 555",
+    description: "Confidential emotional support",
     available: "24/7",
   },
 ];
@@ -43,8 +44,8 @@ const safetyFeatures = [
   },
   {
     icon: AlertCircle,
-    title: "AI Content Moderation",
-    description: "Our system monitors for harmful content and alerts trained professionals when needed.",
+    title: "Crisis Content Detection",
+    description: "Community content is checked for crisis language so users can be directed to immediate help.",
   },
   {
     icon: Heart,
@@ -84,19 +85,18 @@ export function Safety() {
                 If you're having thoughts of self-harm or suicide, please reach out for immediate help.
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <a href="tel:988">
+                <a href="tel:112">
                   <Button className="bg-white text-[#DC2626] hover:bg-white/90">
                     <Phone className="w-5 h-5 mr-2" />
-                    Call 988 Now
+                    Call 112 Now
                   </Button>
                 </a>
-                <Button
-                  variant="outline"
-                  className="bg-white/20 border-white/50 text-white hover:bg-white/30"
-                >
+                <Link to="/emergency-contacts">
+                  <Button variant="outline" className="bg-white/20 border-white/50 text-white hover:bg-white/30">
                   <ExternalLink className="w-5 h-5 mr-2" />
                   Find Local Resources
-                </Button>
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

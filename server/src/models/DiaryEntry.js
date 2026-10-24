@@ -22,6 +22,10 @@ const diaryEntrySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    sharedWithMentor: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

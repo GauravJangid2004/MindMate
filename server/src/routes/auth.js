@@ -4,6 +4,7 @@ const validate = require('../middleware/validate');
 const { protect } = require('../middleware/auth');
 const { authLimiter, otpLimiter } = require('../middleware/rateLimiter');
 const {
+  checkPhone,
   sendOTP,
   verifyOTP,
   register,
@@ -12,6 +13,22 @@ const {
 } = require('../controllers/authController');
 
 const router = express.Router();
+
+// ─── Check phone registration ─────────────────────────
+router.post(
+  '/check-phone',
+  authLimiter,
+  [
+    body('phone')
+      .trim()
+      .isLength({ min: 10, max: 10 })
+      .withMessage('Phone must be exactly 10 digits')
+      .isNumeric()
+      .withMessage('Phone must contain only digits'),
+  ],
+  validate,
+  checkPhone
+);
 
 // ─── Send OTP ──────────────────────────────────────────
 router.post(
@@ -74,9 +91,14 @@ router.post(
   [
     body('phone').trim().isLength({ min: 10, max: 10 }).isNumeric(),
     body('zkCommitment')
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ min: 64, max: 64 })
       .withMessage('zkCommitment must be a 64-character hex string'),
+    body('userType')
+      .optional()
+      .isIn(['student', 'elder'])
+      .withMessage('userType must be "student" or "elder"'),
   ],
   validate,
   login

@@ -9,7 +9,7 @@ const logMood = async (req, res, next) => {
   try {
     const { moodValue, note } = req.body;
 
-    if (!moodValue || moodValue < 1 || moodValue > 5) {
+    if (!Number.isFinite(Number(moodValue)) || Number(moodValue) < 1 || Number(moodValue) > 5) {
       return res.status(400).json({
         success: false,
         message: 'moodValue is required and must be between 1 and 5',
@@ -18,7 +18,7 @@ const logMood = async (req, res, next) => {
 
     const entry = await MoodEntry.create({
       userId: req.user._id,
-      moodValue: Math.round(moodValue),
+      moodValue: Math.round(Number(moodValue)),
       note: note || '',
     });
 
@@ -37,7 +37,7 @@ const logMood = async (req, res, next) => {
  */
 const getMoodHistory = async (req, res, next) => {
   try {
-    const days = parseInt(req.query.days) || 7;
+    const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 7));
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 

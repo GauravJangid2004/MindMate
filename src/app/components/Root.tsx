@@ -3,6 +3,7 @@ import { Home, MessageCircle, Heart, Activity, Users, Shield, User, LogOut, Bell
 import { useEffect } from "react";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
+import mindmateMark from "../../assets/mindmate-mark.png";
 
 export function Root() {
   const location = useLocation();
@@ -17,6 +18,7 @@ export function Root() {
 
   const studentNavItems = [
     { path: "/", label: "Home", icon: Home },
+    { path: "/select-mentor", label: "Mentors", icon: Users },
     { path: "/connect", label: "Connect", icon: MessageCircle },
     { path: "/diary", label: "Diary", icon: BookOpen },
     { path: "/wellness", label: "Wellness", icon: Heart },
@@ -74,9 +76,7 @@ export function Root() {
       <header className="lg:hidden fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-b border-border z-50 h-14">
         <div className="flex items-center justify-between h-full px-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C4B5FD] to-[#A78BFA] flex items-center justify-center shadow-sm">
-              <Heart className="w-4 h-4 text-white" />
-            </div>
+            <img src={mindmateMark} alt="MindMate" className="w-9 h-9 object-contain" />
             <span className="font-semibold text-foreground text-sm">MindMate</span>
           </Link>
           <span className="text-sm font-medium text-muted-foreground">{getPageTitle()}</span>
@@ -132,9 +132,7 @@ export function Root() {
       {/* Desktop Sidebar */}
       <nav className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 bg-white/80 backdrop-blur-lg border-r border-border flex-col p-6 gap-8 z-50">
         <Link to="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#C4B5FD] to-[#A78BFA] flex items-center justify-center shadow-md">
-            <Heart className="w-6 h-6 text-white" />
-          </div>
+          <img src={mindmateMark} alt="MindMate" className="w-12 h-12 object-contain" />
           <div>
             <h1 className="font-semibold text-foreground text-lg leading-tight">MindMate</h1>
             <p className="text-xs text-muted-foreground">You are not alone</p>

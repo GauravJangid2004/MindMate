@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router";
 import { motion } from "motion/react";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
-import { Badge } from "../components/ui/badge";
 import {
   MessageCircle,
   Activity,
@@ -12,9 +11,12 @@ import {
   Shield,
   BookOpen,
   Sparkles,
-  TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { mood as moodApi } from "../lib/api";
+import { toast } from "sonner";
+import { MentorDirectory } from "../components/MentorDirectory";
+import { MentorStudentConnect } from "../components/MentorStudentConnect";
 
 const moods = [
   { emoji: "😊", label: "Happy", color: "from-[#FEF3C7] to-[#FDE68A]" },
@@ -34,7 +36,7 @@ const supportiveMessages = [
 ];
 
 export function Home() {
-  const { isAuthenticated, userType, studentProfile, elderProfile } = useAuth();
+  const { isAuthenticated, userType, studentProfile } = useAuth();
   const navigate = useNavigate();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [currentMessage] = useState(
@@ -54,9 +56,14 @@ export function Home() {
 
   const hasConnectedMentor = studentProfile?.connectedMentorId;
 
-  const handleMoodSelect = (mood: string) => {
+  const handleMoodSelect = async (mood: string) => {
     setSelectedMood(mood);
-    // Simulate showing supportive response
+    const moodValues: Record<string, number> = { Happy: 5, Calm: 4, Anxious: 2, Lonely: 2, Stressed: 2, Sad: 1 };
+    try {
+      await moodApi.logMood(moodValues[mood] || 3);
+    } catch (err: any) {
+      toast.error(err.message || "Unable to save your mood");
+    }
     setTimeout(() => {
       setSelectedMood(null);
     }, 3000);
@@ -268,6 +275,9 @@ export function Home() {
           );
         })}
       </div>
+
+      {userType === "elder" && <MentorStudentConnect />}
+      {userType === "student" && <MentorDirectory connectedMentorId={studentProfile?.connectedMentorId} />}
 
       {/* CTA Button */}
       <motion.div

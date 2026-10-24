@@ -44,8 +44,8 @@ const getConversations = async (req, res, next) => {
 const getMessages = async (req, res, next) => {
   try {
     const { conversationId } = req.params;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
     const skip = (page - 1) * limit;
 
     // Verify user is part of this conversation

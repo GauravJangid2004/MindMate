@@ -7,6 +7,31 @@ const logger = require('../utils/logger');
 const otpStore = new Map();
 
 /**
+ * @desc    Check whether a phone number is already registered.
+ * @route   POST /api/auth/check-phone
+ *
+ * This is intentionally explicit for the current development flow: login
+ * must decide whether to continue to OTP or send the user to signup before
+ * generating a login OTP.
+ */
+const checkPhone = async (req, res, next) => {
+  try {
+    const { phone } = req.body;
+    const existingUser = await User.findByPhone(phone);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        isRegistered: Boolean(existingUser),
+        userType: existingUser?.userType || null,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Send OTP to phone number (sandbox — returns OTP in response)
  * @route   POST /api/auth/send-otp
  */
@@ -34,12 +59,16 @@ const sendOTP = async (req, res, next) => {
 
     // In sandbox mode, return the OTP in the response
     // In production, send via SMS provider (Twilio / MSG91)
-    res.status(200).json({
+    const response = {
       success: true,
       message: 'OTP sent successfully',
-      // Remove this in production:
-      sandbox: { otp },
-    });
+    };
+
+    if (process.env.SANDBOX_MODE === 'true' || process.env.NODE_ENV !== 'production') {
+      response.sandbox = { otp };
+    }
+
+    res.status(200).json(response);
   } catch (error) {
     next(error);
   }
@@ -96,7 +125,9 @@ const verifyOTP = async (req, res, next) => {
       });
     }
 
-    // OTP verified — mark as verified but keep for registration step
+    const existingUser = await User.findByPhone(phone);
+
+    // OTP verified — mark as verified but keep for registration/sign-in step
     otpStore.set(phone, { ...stored, verified: true });
 
     logger.info(`OTP verified for phone ending in ...${phone.slice(-4)}`);
@@ -104,6 +135,10 @@ const verifyOTP = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'OTP verified successfully',
+      data: {
+        isRegistered: Boolean(existingUser),
+        userType: existingUser?.userType || null,
+      },
     });
   } catch (error) {
     next(error);
@@ -152,12 +187,23 @@ const register = async (req, res, next) => {
       });
     }
 
+    // A phone number can only belong to one account. This also prevents a
+    // second account from being created with a different identity commitment.
+    const existingPhoneUser = await User.findByPhone(phone);
+    if (existingPhoneUser) {
+      return res.status(409).json({
+        success: false,
+        message: 'This phone number is already registered. Please sign in.',
+      });
+    }
+
     // Hash phone number before storing
     const phoneHash = await User.hashPhone(phone);
 
     // Build user data
     const userData = {
       phoneHash,
+      phoneLookup: User.createPhoneLookup(phone),
       zkCommitment,
       anonymousHandle,
       userType,
@@ -205,12 +251,12 @@ const register = async (req, res, next) => {
  */
 const login = async (req, res, next) => {
   try {
-    const { phone, zkCommitment } = req.body;
+    const { phone, zkCommitment, userType } = req.body;
 
-    if (!phone || !zkCommitment) {
+    if (!phone) {
       return res.status(400).json({
         success: false,
-        message: 'Phone and zkCommitment are required',
+        message: 'Phone is required',
       });
     }
 
@@ -223,12 +269,22 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Find user by zkCommitment
-    const user = await User.findOne({ zkCommitment });
+    // Existing-user sign-in is based on verified phone OTP. The optional
+    // commitment keeps backwards compatibility with the older signup fallback.
+    const user = zkCommitment
+      ? await User.findOne({ zkCommitment })
+      : await User.findByPhone(phone);
     if (!user) {
-      return res.status(401).json({
+      return res.status(404).json({
         success: false,
-        message: 'Invalid credentials — no account found',
+        message: 'No account found for this phone number. Please sign up first.',
+      });
+    }
+
+    if (userType && user.userType !== userType) {
+      return res.status(403).json({
+        success: false,
+        message: `This phone number belongs to a ${user.userType === 'elder' ? 'mentor' : 'student'} account`,
       });
     }
 
@@ -277,4 +333,4 @@ const getMe = async (req, res, next) => {
   }
 };
 
-module.exports = { sendOTP, verifyOTP, register, login, getMe };
+module.exports = { checkPhone, sendOTP, verifyOTP, register, login, getMe };

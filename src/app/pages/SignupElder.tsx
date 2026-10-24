@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router";
 import { motion } from "motion/react";
 import { Card } from "../components/ui/card";
@@ -17,6 +17,16 @@ export function SignupElder() {
     passion: "",
     hobbies: "",
   });
+
+  useEffect(() => {
+    if (!verification.isVerified || !verification.phone || !verification.zkCommitment) {
+      navigate("/verify?next=/signup/mentor&mode=signup&accountType=mentor");
+    }
+  }, [navigate, verification.isVerified, verification.phone, verification.zkCommitment]);
+
+  if (!verification.isVerified || !verification.phone || !verification.zkCommitment) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,19 +51,8 @@ export function SignupElder() {
       }
     } catch (err: any) {
       if (err.status === 409) {
-        try {
-          const loginResponse = await authApi.login(
-            verification.phone || '',
-            verification.zkCommitment || ''
-          );
-          if (loginResponse.success && loginResponse.data) {
-            loginWithToken(loginResponse.data.token, loginResponse.data.user);
-            toast.success('Welcome back!');
-            navigate("/");
-          }
-        } catch {
-          toast.error('Login failed. Please try again.');
-        }
+        toast.info('This phone number is already registered. Please sign in instead.');
+        navigate(`/login?accountType=mentor&phone=${encodeURIComponent(verification.phone || '')}`);
       } else {
         toast.error(err.message || 'Registration failed. Please try again.');
       }
@@ -139,7 +138,7 @@ export function SignupElder() {
 
         <p className="text-center text-sm text-muted-foreground mt-4">
           Already have an account?{" "}
-          <Link to="/signin/elder" className="text-primary hover:underline">
+          <Link to="/login" className="text-primary hover:underline">
             Sign In
           </Link>
         </p>

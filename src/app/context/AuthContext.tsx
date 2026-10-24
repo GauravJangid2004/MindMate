@@ -43,6 +43,7 @@ interface AuthContextType {
   verification: VerificationState;
   login: (type: UserType, profile: StudentProfile | ElderProfile) => void;
   loginWithToken: (token: string, user: any) => void;
+  refreshUser: () => Promise<void>;
   logout: () => void;
   updateStudentMentor: (mentorId: string) => void;
   verifyUser: (phone: string, zkCommitment: string, handle: string) => void;
@@ -56,11 +57,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userType, setUserType] = useState<UserType | null>(null);
   const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
   const [elderProfile, setElderProfile] = useState<ElderProfile | null>(null);
-  const [verification, setVerification] = useState<VerificationState>({
-    isVerified: false,
-    phone: null,
-    zkCommitment: null,
-    anonymousHandle: null,
+  const [verification, setVerification] = useState<VerificationState>(() => {
+    try {
+      const saved = sessionStorage.getItem('mindmate_verification');
+      if (saved) return JSON.parse(saved) as VerificationState;
+    } catch {
+      // Ignore malformed session state and start a fresh verification flow.
+    }
+    return {
+      isVerified: false,
+      phone: null,
+      zkCommitment: null,
+      anonymousHandle: null,
+    };
   });
 
   // ─── Auto-login on mount: validate existing token ──────
@@ -85,8 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             anonymousHandle: user.anonymousHandle,
           });
 
-          if (user.userType === "student") {
-            setStudentProfile({
+           if (user.userType === "student") {
+             setElderProfile(null);
+             setStudentProfile({
               id: user._id,
               age: user.age,
               gender: user.gender,
@@ -94,8 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               hobbies: user.hobbies || [],
               connectedMentorId: user.connectedMentorId,
             });
-          } else {
-            setElderProfile({
+           } else {
+             setStudentProfile(null);
+             setElderProfile({
               id: user._id,
               gender: user.gender,
               passion: user.passion,
@@ -115,12 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const verifyUser = (phone: string, zkCommitment: string, handle: string) => {
-    setVerification({
+    const nextVerification = {
       isVerified: true,
       phone,
       zkCommitment,
       anonymousHandle: handle,
-    });
+    };
+    setVerification(nextVerification);
+    sessionStorage.setItem('mindmate_verification', JSON.stringify(nextVerification));
   };
 
   /**
@@ -128,6 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    */
   const loginWithToken = (token: string, user: any) => {
     setToken(token);
+    sessionStorage.removeItem('mindmate_verification');
     setIsAuthenticated(true);
     setUserType(user.userType);
     setVerification({
@@ -138,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (user.userType === "student") {
+      setElderProfile(null);
       setStudentProfile({
         id: user._id,
         age: user.age,
@@ -147,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         connectedMentorId: user.connectedMentorId,
       });
     } else {
+      setStudentProfile(null);
       setElderProfile({
         id: user._id,
         gender: user.gender,
@@ -171,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     clearToken();
+    sessionStorage.removeItem('mindmate_verification');
     setIsAuthenticated(false);
     setUserType(null);
     setStudentProfile(null);
@@ -181,6 +198,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateStudentMentor = (mentorId: string) => {
     if (studentProfile) {
       setStudentProfile({ ...studentProfile, connectedMentorId: mentorId });
+    }
+  };
+
+  const refreshUser = async () => {
+    const response = await authApi.getMe();
+    if (!response.success || !response.data?.user) {
+      throw new Error(response.message || 'Unable to refresh your profile');
+    }
+
+    const user = response.data.user;
+    setIsAuthenticated(true);
+    setUserType(user.userType);
+    setVerification({
+      isVerified: true,
+      phone: null,
+      zkCommitment: user.zkCommitment,
+      anonymousHandle: user.anonymousHandle,
+    });
+
+    if (user.userType === 'student') {
+      setStudentProfile({
+        id: user._id,
+        age: user.age,
+        gender: user.gender,
+        course: user.course,
+        hobbies: user.hobbies || [],
+        connectedMentorId: user.connectedMentorId,
+      });
+      setElderProfile(null);
+    } else {
+      setStudentProfile(null);
+      setElderProfile({
+        id: user._id,
+        gender: user.gender,
+        passion: user.passion,
+        hobbies: user.hobbies || [],
+      });
+      setStudentProfile(null);
     }
   };
 
@@ -204,6 +259,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verification,
         login,
         loginWithToken,
+        refreshUser,
         logout,
         updateStudentMentor,
         verifyUser,
