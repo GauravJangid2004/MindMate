@@ -28,7 +28,8 @@ import {
   maskAadhaar,
 } from "../lib/aadhaarZK";
 import { auth as authApi } from "../lib/api";
-import mindmateMark from "../../assets/mindmate-mark.png";
+
+const mindmateMark = "/mindmate-mark.png";
 
 type Step = "phone" | "otp" | "aadhaar" | "zk-computing" | "success";
 

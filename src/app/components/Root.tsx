@@ -3,7 +3,8 @@ import { Home, MessageCircle, Heart, Activity, Users, Shield, User, LogOut, Bell
 import { useEffect } from "react";
 import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
-import mindmateMark from "../../assets/mindmate-mark.png";
+
+const mindmateMark = "/mindmate-mark.png";
 
 export function Root() {
   const location = useLocation();

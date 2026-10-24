@@ -17,7 +17,8 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
 import { auth as authApi } from "../lib/api";
-import mindmateLogo from "../../assets/mindmate-logo.jpeg";
+
+const mindmateLogo = "/mindmate-logo.jpeg";
 
 type AccountType = "student" | "elder";
 type SignInStep = "phone" | "otp";
