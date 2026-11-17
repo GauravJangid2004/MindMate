@@ -1,5 +1,27 @@
 const mongoose = require('mongoose');
 
+const commentSchema = new mongoose.Schema(
+  {
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    anonymousHandle: {
+      type: String,
+      required: true,
+    },
+    content: {
+      type: String,
+      required: true,
+      maxlength: 1000,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
 const communityPostSchema = new mongoose.Schema(
   {
     authorId: {
@@ -40,6 +62,7 @@ const communityPostSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    comments: [commentSchema],
   },
   {
     timestamps: true,

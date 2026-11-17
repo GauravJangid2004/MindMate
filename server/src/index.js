@@ -24,6 +24,7 @@ const diaryRoutes = require('./routes/diary');
 const moodRoutes = require('./routes/mood');
 const communityRoutes = require('./routes/community');
 const emergencyRoutes = require('./routes/emergency');
+const aiRoutes = require('./routes/ai');
 
 // ─── App Setup ──────────────────────────────────────────
 const app = express();
@@ -75,6 +76,7 @@ app.use('/api/diary', diaryRoutes);
 app.use('/api/mood', moodRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/emergency-contacts', emergencyRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── Health Check ───────────────────────────────────────
 app.get('/api/health', (req, res) => {

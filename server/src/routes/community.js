@@ -4,6 +4,7 @@ const {
   getPosts,
   createPost,
   toggleHeart,
+  addComment,
   getEncouragement,
   addEncouragement,
 } = require('../controllers/communityController');
@@ -17,6 +18,7 @@ router.use(protect);
 router.get('/posts', getPosts);
 router.post('/posts', createPost);
 router.post('/posts/:id/heart', toggleHeart);
+router.post('/posts/:id/comments', addComment);
 
 // Encouragement wall
 router.get('/encouragement', getEncouragement);

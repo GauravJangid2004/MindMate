@@ -144,6 +144,22 @@ export const users = {
   listMentors: () => request('/users/mentors'),
 };
 
+// ─── AI ─────────────────────────────────────────────────
+
+export const ai = {
+  matchMentors: (studentNeeds: string) =>
+    request('/ai/mentor-matching', {
+      method: 'POST',
+      body: JSON.stringify({ studentNeeds }),
+    }),
+
+  conversationStarters: (mentorId: string) =>
+    request('/ai/conversation-starters', {
+      method: 'POST',
+      body: JSON.stringify({ mentorId }),
+    }),
+};
+
 // ─── CONNECTIONS ────────────────────────────────────────
 
 export const connections = {
@@ -246,6 +262,12 @@ export const community = {
   toggleHeart: (postId: string) =>
     request(`/community/posts/${postId}/heart`, {
       method: 'POST',
+    }),
+
+  addComment: (postId: string, content: string) =>
+    request(`/community/posts/${postId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
     }),
 
   getEncouragement: () => request('/community/encouragement'),

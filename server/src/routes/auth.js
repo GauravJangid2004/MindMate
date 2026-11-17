@@ -2,7 +2,13 @@ const express = require('express');
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const { protect } = require('../middleware/auth');
-const { authLimiter, otpLimiter } = require('../middleware/rateLimiter');
+const {
+  checkPhoneLimiter,
+  verifyOtpLimiter,
+  registerLimiter,
+  loginLimiter,
+  otpLimiter,
+} = require('../middleware/rateLimiter');
 const {
   checkPhone,
   sendOTP,
@@ -17,7 +23,7 @@ const router = express.Router();
 // ─── Check phone registration ─────────────────────────
 router.post(
   '/check-phone',
-  authLimiter,
+  checkPhoneLimiter,
   [
     body('phone')
       .trim()
@@ -49,7 +55,7 @@ router.post(
 // ─── Verify OTP ────────────────────────────────────────
 router.post(
   '/verify-otp',
-  authLimiter,
+  verifyOtpLimiter,
   [
     body('phone').trim().isLength({ min: 10, max: 10 }).isNumeric(),
     body('otp')
@@ -65,7 +71,7 @@ router.post(
 // ─── Register ──────────────────────────────────────────
 router.post(
   '/register',
-  authLimiter,
+  registerLimiter,
   [
     body('phone').trim().isLength({ min: 10, max: 10 }).isNumeric(),
     body('zkCommitment')
@@ -87,7 +93,7 @@ router.post(
 // ─── Login ─────────────────────────────────────────────
 router.post(
   '/login',
-  authLimiter,
+  loginLimiter,
   [
     body('phone').trim().isLength({ min: 10, max: 10 }).isNumeric(),
     body('zkCommitment')

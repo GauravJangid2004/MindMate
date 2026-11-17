@@ -164,6 +164,65 @@ const toggleHeart = async (req, res, next) => {
 };
 
 /**
+ * @desc    Add a comment to a community post
+ * @route   POST /api/community/posts/:id/comments
+ */
+const addComment = async (req, res, next) => {
+  try {
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content is required',
+      });
+    }
+
+    if (content.trim().length > 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment must be 1000 characters or less',
+      });
+    }
+
+    if (containsCrisisContent(content)) {
+      logger.warn(
+        `Crisis content detected in community comment by ${req.user.anonymousHandle}`
+      );
+    }
+
+    const post = await CommunityPost.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found',
+      });
+    }
+
+    const comment = {
+      authorId: req.user._id,
+      anonymousHandle: req.user.anonymousHandle || 'Anonymous User',
+      content: content.trim(),
+    };
+
+    post.comments.push(comment);
+    await post.save();
+
+    const createdComment = post.comments[post.comments.length - 1];
+
+    res.status(201).json({
+      success: true,
+      data: {
+        comment: createdComment,
+        commentCount: post.comments.length,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc    Get encouragement wall notes
  * @route   GET /api/community/encouragement
  */
@@ -223,6 +282,7 @@ module.exports = {
   getPosts,
   createPost,
   toggleHeart,
+  addComment,
   getEncouragement,
   addEncouragement,
 };

@@ -306,6 +306,18 @@ Base URL: `http://localhost:5000/api` (All routes except `/auth/*` require `Auth
    CORS_ORIGIN=http://localhost:5173
    ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
    ```
+   Configure AI providers in the same ignored `server/.env` file:
+   ```env
+   GEMINI_API_KEY=your_gemini_api_key
+   GEMINI_MODEL=gemini-2.0-flash-lite
+   QWEN_EMBEDDING_URL=http://127.0.0.1:11434/api/embed
+   QWEN_EMBEDDING_API_KEY=
+   QWEN_EMBEDDING_MODEL=qwen3-embedding:0.6b
+   QWEN_RERANK_URL=
+   QWEN_RERANK_API_KEY=
+   QWEN_RERANK_MODEL=Qwen/Qwen3-Reranker-0.6B
+   ```
+   The default Qwen embedding URL uses Ollama's native `/api/embed` API. Install Ollama, then run `ollama pull qwen3-embedding:0.6b`; Ollama should be available at `http://localhost:11434`. To use a hosted provider instead, set its full OpenAI-compatible `/v1/embeddings` URL and provider-specific model ID. The optional reranker URL must accept `/v1/rerank` requests and return indexed `results` with `relevance_score`. API keys belong only in this ignored file. Gemini generates theme analysis, match explanations, and conversation starters; without `GEMINI_API_KEY`, those parts use the existing local fallback behavior. Student-written matching needs are sent to the configured AI providers, so the UI advises students not to include identifying details.
 
 4. Start the backend development server:
    ```bash
@@ -476,4 +488,3 @@ The current evidence base consists of:
 - A preliminary **problem, customer, alternative, competitor, SWOT, and market analysis**.
 - A working **UI/UX prototype and software architecture** documented in this README.
 - Identified research gaps that will require further experimentation and validation.
-
