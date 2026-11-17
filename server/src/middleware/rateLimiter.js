@@ -14,20 +14,28 @@ const globalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-/**
- * Auth route rate limiter — 10 attempts per 15 minutes per IP.
- * Protects against brute-force login/registration attacks.
- */
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: {
-    success: false,
-    message: 'Too many auth attempts, please try again in 15 minutes.',
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+const AUTH_WINDOW_MS = 15 * 60 * 1000;
+const AUTH_MAX = process.env.NODE_ENV === 'production' ? 10 : 30;
+
+function createAuthLimiter(action, max = AUTH_MAX) {
+  return rateLimit({
+    windowMs: AUTH_WINDOW_MS,
+    max,
+    message: {
+      success: false,
+      message: `Too many ${action} attempts. Please wait 15 minutes before trying again.`,
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+}
+
+// Keep counters independent: checking a phone or completing OTP must not
+// consume the registration or login attempt allowance for the same IP.
+const checkPhoneLimiter = createAuthLimiter('phone check');
+const verifyOtpLimiter = createAuthLimiter('OTP verification', 10);
+const registerLimiter = createAuthLimiter('registration');
+const loginLimiter = createAuthLimiter('login', 10);
 
 /**
  * OTP rate limiter — 5 OTP requests per 5 minutes per IP.
@@ -44,4 +52,11 @@ const otpLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { globalLimiter, authLimiter, otpLimiter };
+module.exports = {
+  globalLimiter,
+  checkPhoneLimiter,
+  verifyOtpLimiter,
+  registerLimiter,
+  loginLimiter,
+  otpLimiter,
+};
