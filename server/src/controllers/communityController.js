@@ -32,7 +32,7 @@ const getPosts = async (req, res, next) => {
     const skip = (page - 1) * limit;
 
     const posts = await CommunityPost.find()
-      .populate('authorId', 'anonymousHandle')
+      .populate('authorId', 'anonymousHandle userType')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -108,7 +108,7 @@ const createPost = async (req, res, next) => {
       category: category || 'General',
     });
 
-    await post.populate('authorId', 'anonymousHandle');
+    await post.populate('authorId', 'anonymousHandle userType');
 
     res.status(201).json({
       success: true,
@@ -202,6 +202,7 @@ const addComment = async (req, res, next) => {
     const comment = {
       authorId: req.user._id,
       anonymousHandle: req.user.anonymousHandle || 'Anonymous User',
+      authorRole: req.user.userType || 'student',
       content: content.trim(),
     };
 

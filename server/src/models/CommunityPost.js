@@ -11,6 +11,11 @@ const commentSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    authorRole: {
+      type: String,
+      enum: ['student', 'elder'],
+      default: 'student',
+    },
     content: {
       type: String,
       required: true,

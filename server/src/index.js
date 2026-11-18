@@ -37,6 +37,7 @@ const io = new Server(server, {
     methods: ['GET', 'POST'],
     credentials: true,
   },
+  maxHttpBufferSize: 1e7,
 });
 
 // ─── Security Middleware ────────────────────────────────
@@ -54,9 +55,9 @@ app.use(
 // Rate limiting
 app.use('/api', globalLimiter);
 
-// Body parsing (limit payload size)
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+// Body parsing (support voice messages and text payloads)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Sanitize data against NoSQL injection
 app.use(mongoSanitize());
@@ -135,7 +136,11 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+}
+
+module.exports = app;
 
 // ─── Graceful Shutdown ──────────────────────────────────
 process.on('SIGTERM', () => {

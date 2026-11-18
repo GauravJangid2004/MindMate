@@ -6,6 +6,7 @@ const {
   RERANK_MODEL,
   embedTexts,
   parseEmbeddingResponse,
+  parseHuggingFaceResponse,
 } = require('./qwenInferenceService');
 
 const originalFetch = global.fetch;
@@ -146,4 +147,40 @@ test('mentor matching uses Qwen vectors and respects reranker order', async () =
   assert.equal(result.models.embeddings, EMBEDDING_MODEL);
   assert.equal(result.models.reranker, RERANK_MODEL);
   assert.ok(result.recommendations.every((item) => item.matchPercentage >= 0));
+});
+
+test('embedding parser handles Hugging Face 2D array and mean pooling', () => {
+  const vectors = parseHuggingFaceResponse([[0.1, 0.9], [0.8, 0.2]], 2);
+  assert.deepEqual(vectors, [[0.1, 0.9], [0.8, 0.2]]);
+
+  // Single 1D vector fallback
+  const single = parseHuggingFaceResponse([0.5, 0.5], 1);
+  assert.deepEqual(single, [[0.5, 0.5]]);
+
+  // 3D token pooling
+  const pooled = parseHuggingFaceResponse([[[1, 0], [0, 2]]], 1);
+  assert.deepEqual(pooled, [[0.5, 1]]);
+});
+
+test('embedding calls Hugging Face Inference API when configured', async () => {
+  process.env.QWEN_EMBEDDING_URL = 'https://router.huggingface.co/hf-inference/models/Qwen/Qwen3-Embedding-0.6B';
+  process.env.QWEN_EMBEDDING_API_KEY = 'hf_mock_token_123';
+
+  global.fetch = async (url, options) => {
+    assert.equal(
+      url,
+      'https://router.huggingface.co/hf-inference/models/Qwen/Qwen3-Embedding-0.6B/pipeline/feature-extraction'
+    );
+    assert.equal(options.headers['Authorization'], 'Bearer hf_mock_token_123');
+    assert.equal(options.headers['x-wait-for-model'], 'true');
+    const body = JSON.parse(options.body);
+    assert.deepEqual(body.inputs, ['student support needs']);
+    return {
+      ok: true,
+      json: async () => [[0.4, 0.6]],
+    };
+  };
+
+  const result = await embedTexts(['student support needs']);
+  assert.deepEqual(result, [[0.4, 0.6]]);
 });

@@ -95,9 +95,9 @@ export function Home() {
           color: "from-[#D1FAE5] to-[#A7F3D0]",
         },
         {
-          icon: BookOpen,
+          icon: Users,
           title: "Community Support",
-          description: "Share encouraging stories",
+          description: "Share encouraging stories & wisdom",
           link: "/community",
           color: "from-[#FEF3C7] to-[#FDE68A]",
         },

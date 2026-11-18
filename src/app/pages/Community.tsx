@@ -14,12 +14,14 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { community } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
 import { toast } from "sonner";
 
 interface Comment {
   _id: string;
   authorId?: string;
   anonymousHandle: string;
+  authorRole?: string;
   content: string;
   createdAt: string;
 }
@@ -32,7 +34,7 @@ interface Post {
   heartCount: number;
   isHearted: boolean;
   createdAt: string;
-  authorId?: { anonymousHandle: string };
+  authorId?: { anonymousHandle: string; userType?: string };
   comments?: Comment[];
 }
 
@@ -43,6 +45,7 @@ interface Note {
 }
 
 export function Community() {
+  const { userType } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -111,7 +114,7 @@ export function Community() {
       setNewTitle("");
       setNewContent("");
       setShowPostInput(false);
-      toast.success("Story shared");
+      toast.success(userType === "elder" ? "Wisdom shared with the community" : "Story shared");
     } catch (err: any) {
       toast.error(err.message || "Unable to publish your story");
     }
@@ -191,9 +194,18 @@ export function Community() {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <h1 className="text-3xl mb-3">Community Support</h1>
+        <div className="flex items-center gap-2 mb-2">
+          <h1 className="text-3xl">Community Support</h1>
+          {userType === "elder" && (
+            <span className="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-medium border border-amber-200">
+              Mentor View
+            </span>
+          )}
+        </div>
         <p className="text-muted-foreground">
-          Share encouragement, read lived experiences, and know you're not alone.
+          {userType === "elder"
+            ? "Connect with students, share guiding experiences, and leave uplifting words of encouragement."
+            : "Share encouragement, read lived experiences, and know you're not alone."}
         </p>
       </motion.div>
 
@@ -227,7 +239,7 @@ export function Community() {
                 className="bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA] text-white rounded-full shadow-sm hover:opacity-95"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Note
+                {userType === "elder" ? "Encourage Someone" : "Add Note"}
               </Button>
             </div>
 
@@ -236,7 +248,11 @@ export function Community() {
                 <textarea
                   value={newMessage}
                   onChange={(event) => setNewMessage(event.target.value)}
-                  placeholder="Share an encouraging message…"
+                  placeholder={
+                    userType === "elder"
+                      ? "Share a brief uplifting piece of advice or encouragement for a student…"
+                      : "Share an encouraging message…"
+                  }
                   className="w-full p-4 rounded-xl bg-white/80 border border-border resize-none mb-3 h-24 focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 <div className="flex gap-2">
@@ -278,7 +294,7 @@ export function Community() {
               <div>
                 <h2 className="text-2xl">Shared Experiences</h2>
                 <p className="text-muted-foreground">
-                  Anonymous stories and reflections from the MindMate community.
+                  Anonymous stories and reflections from students and mentors.
                 </p>
               </div>
               <Button
@@ -286,7 +302,7 @@ export function Community() {
                 className="bg-gradient-to-r from-[#C4B5FD] to-[#A78BFA] text-white rounded-full shadow-sm hover:opacity-95"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Share Story
+                {userType === "elder" ? "Share Wisdom / Story" : "Share Story"}
               </Button>
             </div>
 
@@ -295,7 +311,7 @@ export function Community() {
                 <input
                   value={newTitle}
                   onChange={(event) => setNewTitle(event.target.value)}
-                  placeholder="Story title"
+                  placeholder={userType === "elder" ? "Story title or reflection topic" : "Story title"}
                   className="w-full p-3 rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 <select
@@ -318,7 +334,11 @@ export function Community() {
                 <textarea
                   value={newContent}
                   onChange={(event) => setNewContent(event.target.value)}
-                  placeholder="Share your experience…"
+                  placeholder={
+                    userType === "elder"
+                      ? "Share a life experience or advice that could help students going through tough times…"
+                      : "Share your experience…"
+                  }
                   className="w-full p-3 rounded-xl border border-border bg-white h-28 resize-none focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 <div className="flex gap-2">
@@ -364,8 +384,17 @@ export function Community() {
                                   {post.category}
                                 </span>
                                 {post.authorId?.anonymousHandle && (
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                                     by {post.authorId.anonymousHandle}
+                                    {post.authorId.userType === "elder" ? (
+                                      <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-medium border border-amber-200">
+                                        Mentor
+                                      </span>
+                                    ) : post.authorId.userType === "student" ? (
+                                      <span className="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full text-[10px] font-medium border border-sky-200">
+                                        Student
+                                      </span>
+                                    ) : null}
                                   </span>
                                 )}
                               </div>
@@ -440,9 +469,20 @@ export function Community() {
                                       className="p-3 bg-muted/40 rounded-xl text-sm space-y-1 border border-border/40"
                                     >
                                       <div className="flex items-center justify-between gap-2">
-                                        <span className="font-medium text-xs text-primary">
-                                          {comment.anonymousHandle}
-                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="font-medium text-xs text-primary">
+                                            {comment.anonymousHandle}
+                                          </span>
+                                          {comment.authorRole === "elder" ? (
+                                            <span className="bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-full text-[9px] font-medium border border-amber-200">
+                                              Mentor
+                                            </span>
+                                          ) : comment.authorRole === "student" ? (
+                                            <span className="bg-sky-100 text-sky-800 px-1.5 py-0.2 rounded-full text-[9px] font-medium border border-sky-200">
+                                              Student
+                                            </span>
+                                          ) : null}
+                                        </div>
                                         <span className="text-[10px] text-muted-foreground">
                                           {new Date(comment.createdAt).toLocaleDateString(undefined, {
                                             month: "short",
@@ -472,7 +512,11 @@ export function Community() {
                                       void submitComment(post._id);
                                     }
                                   }}
-                                  placeholder="Write a supportive comment..."
+                                  placeholder={
+                                    userType === "elder"
+                                      ? "Leave supportive advice or encouragement..."
+                                      : "Write a supportive comment..."
+                                  }
                                   className="flex-1 px-4 py-2 text-sm rounded-full border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
                                   maxLength={1000}
                                 />
