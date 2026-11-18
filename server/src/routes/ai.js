@@ -10,6 +10,7 @@ const {
   translate,
   conversationStarters,
   moderateContent,
+  mentorChat,
 } = require('../controllers/aiController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -61,5 +62,8 @@ router.post('/conversation-starters', protect, authorize('student'), conversatio
 
 // 8. Content Moderation Support (Flag potentially harmful/inappropriate content)
 router.post('/moderate', moderateContent);
+
+// 9. Mentor Assistant Mini-Chatbot
+router.post('/mentor-chat', mentorChat);
 
 module.exports = router;

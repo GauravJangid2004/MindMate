@@ -158,6 +158,15 @@ export const ai = {
       method: 'POST',
       body: JSON.stringify({ mentorId }),
     }),
+
+  mentorChat: (
+    message: string,
+    history?: Array<{ role: 'user' | 'assistant'; content: string }>
+  ) =>
+    request('/ai/mentor-chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, history }),
+    }),
 };
 
 // ─── CONNECTIONS ────────────────────────────────────────

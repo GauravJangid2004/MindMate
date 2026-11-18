@@ -469,6 +469,120 @@ Evaluate:
   };
 }
 
+/**
+ * 9. Mentor Assistant Chatbot: Conversational guide for mentor section
+ */
+async function chatMentorAssistant({ message = '', history = [], mentors = [], userRole = 'student' }) {
+  const mentorsSummary = (mentors || []).map((m) => {
+    const handle = m.anonymousHandle || 'Verified Mentor';
+    const passion = m.passion || 'General Mentorship';
+    const hobbies = Array.isArray(m.hobbies) ? m.hobbies.join(', ') : '';
+    return `• ${handle}: Expertise/Passion: ${passion}${hobbies ? ` | Interests: ${hobbies}` : ''}`;
+  }).join('\n');
+
+  const conversationContext = (history || [])
+    .slice(-6)
+    .map((h) => `${h.role === 'user' ? 'Student' : 'Assistant'}: ${h.content}`)
+    .join('\n');
+
+  const prompt = `Available Verified Mentors on the platform:
+${mentorsSummary || 'Mentors available on the platform directory.'}
+
+Conversation History:
+${conversationContext || 'New conversation'}
+
+Student's latest message: "${message}"
+
+Provide a warm, empathetic, and constructive response. If relevant, suggest 1 or 2 specific mentors from the list above or recommend what kind of mentor would best support them. Also suggest 2-3 quick follow-up prompt ideas for the student.`;
+
+  const system = `You are "Mentor Guide AI", a compassionate, concise peer-mentor navigation assistant for MindMate, an anonymous mental wellbeing platform for students.
+Your personality is gentle, supportive, and non-judgmental.
+Rules:
+1. Keep answers concise (2-4 clear sentences or short bullet points).
+2. Help students choose mentors, overcome fear of opening up, or craft friendly icebreakers.
+3. If they ask about safety/privacy, assure them MindMate is 100% anonymous with zero-knowledge verification and encrypted chats.
+4. If a crisis or self-harm is mentioned, provide the 24/7 Tele-MANAS helpline (14416) immediately.
+Return JSON:
+{
+  "reply": string,
+  "suggestedPrompts": string[]
+}`;
+
+  const result = await callGemini(prompt, system, true);
+  if (result && typeof result.reply === 'string') {
+    return {
+      reply: result.reply,
+      suggestedPrompts: Array.isArray(result.suggestedPrompts)
+        ? result.suggestedPrompts.slice(0, 3)
+        : ["What should I say first?", "Help me choose a mentor", "Tips for stress"],
+      source: 'gemini',
+    };
+  }
+
+  // Local fallback engine with contextual heuristics
+  const lower = (message || '').toLowerCase();
+
+  // Crisis check
+  const crisisKeywords = ['suicide', 'kill myself', 'end my life', 'want to die', 'self harm', 'cutting'];
+  if (crisisKeywords.some((k) => lower.includes(k))) {
+    return {
+      reply: "I hear how heavy things feel right now, and I care about your safety. You don't have to carry this alone. Please connect right away with Tele-MANAS (call 14416) or the Vandrevala Foundation (call 9999 666 555) for free, confidential 24/7 support. Our mentors and community are also here for you.",
+      suggestedPrompts: ["Tell me about Tele-MANAS", "How do I talk to a mentor?", "Try a breathing exercise"],
+      source: 'local fallback',
+    };
+  }
+
+  // Icebreaker / first message
+  if (lower.includes('first message') || lower.includes('say') || lower.includes('icebreaker') || lower.includes('start') || lower.includes('hello') || lower.includes('hi')) {
+    return {
+      reply: "Starting a conversation can feel scary, but our mentors are kind and eager to listen! Here are 2 easy ways to break the ice:\n\n1. *'Hi there! I saw your profile and loved your focus on [interest]. How is your week going?'*\n2. *'Hello! I've been feeling a bit overwhelmed lately with college and was hoping for some friendly perspective.'*\n\nPick any mentor above and click 'Suggest conversation starters' for more personalized ideas!",
+      suggestedPrompts: ["Which mentor should I choose?", "How does anonymity work?", "I feel nervous"],
+      source: 'local fallback',
+    };
+  }
+
+  // Choosing a mentor / recommendation
+  if (lower.includes('choose') || lower.includes('pick') || lower.includes('recommend') || lower.includes('who') || lower.includes('best') || lower.includes('find')) {
+    let mentorNote = "browse the mentor cards above and look for hobbies or expertise that match what you're experiencing.";
+    if (mentors.length > 0) {
+      const sample = mentors.slice(0, 2);
+      const mentorDetails = sample.map((m) => `**${m.anonymousHandle || 'Verified Mentor'}** (${m.passion || 'Compassionate Guide'})`).join(' and ');
+      mentorNote = `you might like connecting with ${mentorDetails}. They are verified and ready to listen.`;
+    }
+
+    return {
+      reply: `To choose the best mentor for you, think about whether you need someone to talk about academic pressure, daily life balance, or just a listening ear. Based on our community, ${mentorNote} You can also type your situation into the 'Get AI mentor suggestions' box above for instant scoring!`,
+      suggestedPrompts: ["What should I say first?", "Is it confidential?", "How do connection requests work?"],
+      source: 'local fallback',
+    };
+  }
+
+  // Stress / Exam / Burnout
+  if (lower.includes('stress') || lower.includes('exam') || lower.includes('burnout') || lower.includes('anxious') || lower.includes('anxiety') || lower.includes('pressure') || lower.includes('study')) {
+    return {
+      reply: "Exam season and academic pressure are so tough, but taking things one small step at a time really helps. 🌿\n\n• Try our 2-minute Breathing Exercise from the Home page to reset your nervous system.\n• Connect with a mentor who has life experience managing pressure.\n• Remember: your grades do not define your worth as a person.",
+      suggestedPrompts: ["Recommend a mentor for stress", "What should I say first?", "Breathing exercise tips"],
+      source: 'local fallback',
+    };
+  }
+
+  // Privacy / Anonymity
+  if (lower.includes('privacy') || lower.includes('anonymous') || lower.includes('safe') || lower.includes('phone') || lower.includes('identity')) {
+    return {
+      reply: "Your safety is our top priority! On MindMate:\n\n• Your phone number is shielded with Zero-Knowledge cryptographic commitments.\n• Mentors and peers only see your anonymous handle.\n• All 1-on-1 chats are confidential and safe.\nYou can open up at your own pace.",
+      suggestedPrompts: ["Help me pick a mentor", "What should I say first?", "Tell me about community support"],
+      source: 'local fallback',
+    };
+  }
+
+  // Default welcome response
+  return {
+    reply: "Hello! 🌟 I'm your Mentor Guide AI. I'm here to help you navigate our verified mentors, craft comfortable first messages, or answer any questions about connecting. How can I help you today?",
+    suggestedPrompts: ["Help me choose a mentor", "What should I say in my first message?", "How is my privacy protected?"],
+    source: 'local fallback',
+  };
+}
+
 module.exports = {
   GEMINI_MODEL,
   callGemini,
@@ -481,4 +595,5 @@ module.exports = {
   generateConversationStarters,
   explainMentorMatches,
   moderateContent,
+  chatMentorAssistant,
 };

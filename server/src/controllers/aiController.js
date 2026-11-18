@@ -250,6 +250,46 @@ const moderateContent = async (req, res, next) => {
   }
 };
 
+/**
+ * 9. Mentor Chat Assistant
+ * POST /api/ai/mentor-chat
+ */
+const mentorChat = async (req, res, next) => {
+  try {
+    const { message, history } = req.body;
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Message is required for mentor chatbot assistant.',
+      });
+    }
+
+    // Fetch verified mentors for contextual recommendations
+    const mentors = await User.find({
+      userType: 'elder',
+      isVerified: true,
+    })
+      .select('anonymousHandle gender passion hobbies')
+      .limit(10)
+      .lean();
+
+    const response = await geminiService.chatMentorAssistant({
+      message: message.trim(),
+      history: Array.isArray(history) ? history : [],
+      mentors,
+      userRole: req.user?.userType || 'student',
+    });
+
+    res.status(200).json({
+      success: true,
+      data: response,
+    });
+  } catch (error) {
+    logger.error(`Error in mentorChat: ${error.message}`);
+    next(error);
+  }
+};
+
 module.exports = {
   mentorMatching,
   profileTagging,
@@ -259,4 +299,5 @@ module.exports = {
   translate,
   conversationStarters,
   moderateContent,
+  mentorChat,
 };
