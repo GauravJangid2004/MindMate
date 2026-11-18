@@ -7,6 +7,7 @@ import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
 import { ai, connections, users } from "../lib/api";
 import { toast } from "sonner";
+import { MentorMiniChatbot } from "./MentorMiniChatbot";
 
 interface Mentor {
   _id: string;
@@ -157,15 +158,23 @@ export function MentorDirectory({ connectedMentorId }: MentorDirectoryProps) {
 
   return (
     <section className="mb-8">
-      <div className="flex items-start gap-3 mb-5">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C4B5FD] to-[#A78BFA] flex items-center justify-center flex-shrink-0">
-          <Users className="w-6 h-6 text-white" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div className="flex items-start gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#C4B5FD] to-[#A78BFA] flex items-center justify-center flex-shrink-0">
+            <Users className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl mb-1">Mentors</h2>
+            <p className="text-sm text-muted-foreground">
+              Find a supportive mentor or browse all verified profiles.
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl mb-1">Mentors</h2>
-          <p className="text-sm text-muted-foreground">
-            Find a supportive mentor or browse all verified profiles.
-          </p>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <Badge className="bg-gradient-to-r from-[#9061F9]/10 to-[#8B5CF6]/20 text-[#6D28D9] border border-purple-200 px-3 py-1 text-xs rounded-full flex items-center gap-1.5 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
+            <span>AI Guide in corner</span>
+          </Badge>
         </div>
       </div>
 
@@ -362,6 +371,14 @@ export function MentorDirectory({ connectedMentorId }: MentorDirectoryProps) {
           })}
         </div>
       )}
+
+      {/* Mini Chatbot in the corner of the mentor section */}
+      <MentorMiniChatbot
+        onApplyNeedsFilter={(topic) => {
+          setStudentNeeds(topic);
+          toast.info(`Updated search criteria: "${topic}"`);
+        }}
+      />
     </section>
   );
 }

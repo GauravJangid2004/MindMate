@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const { afterEach, test } = require('node:test');
 const { matchMentorsWithWeightedScoring } = require('./mentorMatchingService');
+const { chatMentorAssistant } = require('./geminiService');
 const {
   EMBEDDING_MODEL,
   RERANK_MODEL,
@@ -183,4 +184,29 @@ test('embedding calls Hugging Face Inference API when configured', async () => {
 
   const result = await embedTexts(['student support needs']);
   assert.deepEqual(result, [[0.4, 0.6]]);
+});
+
+test('chatMentorAssistant provides empathetic fallback advice and icebreakers', async () => {
+  delete process.env.GEMINI_API_KEY;
+
+  const response = await chatMentorAssistant({
+    message: 'What should I say in my first message to a mentor?',
+    mentors: [{ anonymousHandle: 'Elder Priya', passion: 'Mindfulness & Exam Stress', hobbies: ['Yoga'] }],
+  });
+
+  assert.ok(response.reply.length > 20);
+  assert.equal(response.source, 'local fallback');
+  assert.ok(Array.isArray(response.suggestedPrompts));
+  assert.ok(response.suggestedPrompts.length > 0);
+});
+
+test('chatMentorAssistant provides emergency crisis helpline on danger keywords', async () => {
+  delete process.env.GEMINI_API_KEY;
+
+  const response = await chatMentorAssistant({
+    message: 'I want to end my life, everything is too painful',
+  });
+
+  assert.ok(response.reply.includes('14416') || response.reply.includes('Tele-MANAS'));
+  assert.equal(response.source, 'local fallback');
 });
