@@ -35,6 +35,8 @@ export function Root() {
     { path: "/connect", label: "Chat", icon: MessageCircle },
     { path: "/student-diary", label: "Diary", icon: BookOpen },
     { path: "/wellness", label: "Wellness", icon: Heart },
+    { path: "/community", label: "Community", icon: Users },
+    { path: "/safety", label: "Safety", icon: Shield },
     { path: "/profile", label: "Profile", icon: User },
   ];
 
@@ -51,7 +53,7 @@ export function Root() {
     { path: "/", label: "Home", icon: Home },
     { path: "/requests", label: "Requests", icon: Bell },
     { path: "/connect", label: "Chat", icon: MessageCircle },
-    { path: "/wellness", label: "Wellness", icon: Heart },
+    { path: "/community", label: "Community", icon: Users },
     { path: "/profile", label: "Profile", icon: User },
   ];
 

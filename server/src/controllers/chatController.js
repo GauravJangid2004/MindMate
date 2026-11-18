@@ -157,7 +157,11 @@ const sendMessage = async (req, res, next) => {
 
     // Update conversation's last message
     conversation.lastMessage = encrypt(
-      content.length > 100 ? content.substring(0, 100) + '...' : content
+      type === 'voice'
+        ? '🎤 Voice message'
+        : content.length > 100
+        ? content.substring(0, 100) + '...'
+        : content
     );
     conversation.lastMessageAt = new Date();
     await conversation.save();
